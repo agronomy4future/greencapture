@@ -25,7 +25,7 @@ library(greencapture)
 
 ## Example
 
-This is a basic code for datacume()
+This is a basic code for greencapture()
 
 ``` r
 greencapture(
