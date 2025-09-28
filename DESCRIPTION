@@ -1,0 +1,14 @@
+Package: greencapture
+Title: Green Area and Coverage Analysis from Images
+Version: 0.0.0.9000
+Authors@R: 
+  person("JK", "Kim", , "kimjk@agronomy4future.com", role = c("aut", "cre"))
+Description: Provides tools for capturing, segmenting, and quantifying green 
+    plant tissue area from digital images. Functions allow calibration using 
+    real-world dimensions, segmentation of leaves or green objects based on 
+    color thresholds, and output of both annotated images and summary data. 
+    Designed for high-throughput in vitro or greenhouse image analysis.
+License: MIT + file LICENSE
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.2
