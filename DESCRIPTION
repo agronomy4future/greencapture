@@ -1,14 +1,18 @@
 Package: greencapture
-Title: Green Area and Coverage Analysis from Images
-Version: 0.0.0.9000
+Title: Image-Based Green Object Segmentation and Measurement
+Version: 0.1.0
 Authors@R: 
-  person("JK", "Kim", , "kimjk@agronomy4future.com", role = c("aut", "cre"))
-Description: Provides tools for capturing, segmenting, and quantifying green 
-    plant tissue area from digital images. Functions allow calibration using 
-    real-world dimensions, segmentation of leaves or green objects based on 
-    color thresholds, and output of both annotated images and summary data. 
-    Designed for high-throughput in vitro or greenhouse image analysis.
+    person("JK", "Kim", email = "kimjk@agronomy4future.com", role = c("aut", "cre"))
+Description: 
+    An image analysis toolkit for plant phenotyping that segments green 
+    objects (such as leaves, fruits, and grains) from RGB images using 
+    OpenCV-based color space thresholding. The package computes real-world 
+    area and perimeter measurements via pixel-to-centimeter calibration 
+    and exports annotated images and summary tables for downstream 
+    statistical analysis.
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.2
+Imports:
+    reticulate

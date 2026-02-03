@@ -2,20 +2,16 @@
 % Please edit documentation in R/greencapture.R
 \name{greencapture}
 \alias{greencapture}
-\title{Segment and Measure Green Objects in Images (Calibrated by Real-World Size)}
+\title{Segment and Measure Green Objects in Images}
 \usage{
 greencapture(
   input_folder,
   output_folder,
   image_real_cm = c(20, 20),
   show_windows = FALSE,
-  max_win_w = 1200L,
-  max_win_h = 800L,
-  zoom_step = 0.1,
-  min_scale = 0.1,
-  max_scale = 1,
-  lower_hsv = c(30L, 25L, 30L),
-  upper_hsv = c(90L, 255L, 255L),
+  lower_hsv = c(0L, 0L, 0L),
+  upper_hsv = c(180L, 255L, 50L),
+  extra_hsv = NULL,
   lab_a_max = 135L,
   min_component_area_px = 1000L,
   k_open = c(3L, 3L),
@@ -26,127 +22,71 @@ greencapture(
 )
 }
 \arguments{
-\item{input_folder}{Character. Directory containing input images
-(supported: \code{.jpg}, \code{.jpeg}, \code{.png}; case-insensitive).}
+\item{input_folder}{Character. Directory containing input images.}
 
-\item{output_folder}{Character. Directory where outputs will be written.
-Created recursively if it does not exist.}
+\item{output_folder}{Character. Directory where outputs will be saved.}
 
-\item{image_real_cm}{Numeric length-2. Real-world width and height
-of the imaged area in centimeters; e.g., \code{c(50, 80)} for 50 cm (x) by 80 cm (y).
-If a single value is provided, it is recycled to both dimensions.}
+\item{image_real_cm}{Numeric length 2. Real-world width and height of the image
+field of view in centimeters.}
 
-\item{show_windows}{Logical. If \code{TRUE}, opens an OpenCV window for each
-annotated image \emph{after} saving results. Press \kbd{ESC} to close.
-Use \code{FALSE} for headless servers.}
+\item{show_windows}{Logical. If TRUE, shows interactive OpenCV viewer.}
 
-\item{max_win_w, max_win_w}{Integer. Maximum viewer window size (pixels).}
+\item{lower_hsv}{Integer length 3. Base HSV lower bound.}
 
-\item{zoom_step, min_scale, max_scale}{Numeric. Viewer zoom step and bounds.}
+\item{upper_hsv}{Integer length 3. Base HSV upper bound.}
 
-\item{lower_hsv, upper_hsv}{Integer length-3. HSV lower/upper bounds used for
-green segmentation (OpenCV HSV space; H in \link{0,179}).}
+\item{extra_hsv}{List or NULL. Optional additional HSV ranges.
+Each element must be a list with \code{lower} and \code{upper}.}
 
-\item{lab_a_max}{Integer. Upper cutoff for the \code{a} channel in CIELab
-(values above are suppressed) to reduce red-magenta interference.}
+\item{lab_a_max}{Integer. Upper cutoff for Lab a-channel.}
 
-\item{min_component_area_px}{Integer. Minimum connected-component area
-(in pixels) to consider as a candidate object.}
+\item{min_component_area_px}{Integer. Minimum connected component area (pixels).}
 
-\item{k_open, k_close}{Integer length-2. Kernel sizes for morphological
-opening and closing (\code{cv2.morphologyEx}).}
+\item{k_open, k_close}{Integer length 2. Kernel sizes for morphology.}
 
-\item{object_min_area_cm2}{Numeric. Absolute minimum object area (cm^2)
-to keep. If no object passes this threshold, a relative filter is applied
-via \code{rel_min_frac_of_largest}.}
+\item{object_min_area_cm2}{Numeric. Minimum object area (cm^2).}
 
-\item{rel_min_frac_of_largest}{Numeric in (0,1]. Relative minimum area as a
-fraction of the largest detected candidate (used as a fallback filter).}
+\item{rel_min_frac_of_largest}{Numeric. Relative fallback threshold.}
 
-\item{max_keep}{Integer. Maximum number of largest objects to keep per image.}
+\item{max_keep}{Integer. Maximum number of objects per image.}
+}
+\value{
+A data frame with one row per detected object containing:
+\itemize{
+\item File Name
+\item Object ID
+\item Object Area (cm²)
+\item Object Perimeter (cm)
+}
 }
 \description{
-The function bridges R and Python via \strong{reticulate}. It requires Python
-packages \strong{numpy}, \strong{pandas}, and \strong{OpenCV} (\code{opencv-python} for GUI,
-or \code{opencv-python-headless} for headless use). Use \code{ensure_pydeps()}
-to install/verify dependencies for the active Python interpreter.
+\code{greencapture()} processes all images in a folder and segments green
+objects (such as leaves, fruits, or grains) using HSV color thresholds.
+It computes real-world area and perimeter measurements via pixel-to-centimeter
+calibration and exports annotated images and a CSV summary table.
 }
-\details{
-\code{greencapture()} processes all images in a folder, segments green objects
-(e.g., leaves) using HSV + Lab thresholds, computes area and perimeter in
-real units using a pixel-to-centimeter calibration, saves annotated images,
-writes a CSV summary, and (optionally) opens a zoomable viewer.
-}
-\section{Calibration}{
-
-Provide the real-world size (in cm) of the full image field of view via
-\code{image_real_cm = c(width_cm, height_cm)}. Pixel measurements are scaled
-by \eqn{sx = width\_cm / image\_width\_px} and \eqn{sy = height\_cm / image\_height\_px}.
-Areas are computed as \eqn{area\_px * (sx * sy)} (cm^2), and perimeters are
-computed by scaling x and y distances separately (accurate for rectangular calibration).
-}
-
 \examples{
 \dontrun{
-# Install from GitHub (only once). Comment these lines out after install.
-if(!require(remotes)) install.packages("remotes")
-if (!requireNamespace("greencapture", quietly = TRUE)) {
- remotes::install_github("agronomy4future/greencapture", force= TRUE)
+
+# Without designating HSV, the default is green color
+greencapture(
+  input_folder = "C:/Users/agron",
+  output_folder = "C:/Users/agron/output",
+  image_real_cm = c(50, 50) # image frame size (for calibration)
+)
+
+# Designating HSV, different colors can be captured
+greencapture(
+  input_folder = "C:/Users/agron",
+  output_folder = "C:/Users/agron/output",
+  image_real_cm = c(30, 30),
+  extra_hsv = list(
+    list(lower = c(35,40,40), upper = c(85,255,255)),
+    list(lower = c(15,60,60), upper = c(30,255,255))
+  )
+)
+□ Website: https://agronomy4future.com/archives/24628
+□ Github: https://github.com/agronomy4future/greencapture
+- All Rights Reserved © J.K Kim (kimjk@agronomy4future.com)
 }
-library(remotes)
-library(greencapture)
-
-# Example: Calibrate to a 50 cm (width) × 80 cm (height) field of view
-res= greencapture(
-  input_folder  = r"(C:/Users/agron/Desktop/Coding)",  # folder with input images
-  output_folder = r"(C:/Users/agron/Desktop/Coding/output)", # where outputs (CSV + images) will be saved
-  image_real_cm = c(50, 80), # real-world width (50 cm) and height (80 cm) for calibration
-  show_windows  = FALSE (or TRUE), # set TRUE to open viewer after saving
-  max_win_w = 1200L, # max viewer window width (px)
-  max_win_h = 800L, # max viewer window height (px)
-  zoom_step = 0.1, # zoom increment per key press
-  min_scale = 0.1, # minimum zoom (10\% of image size)
-  max_scale = 1.0, # maximum zoom (100\% of image size)
-  lower_hsv = c(30L, 25L, 30L), # lower bound (H, S, V) for green segmentation
-  upper_hsv = c(90L, 255L, 255L), # upper bound (H, S, V) for green segmentation
-  lab_a_max = 135L, # Lab color filter to reduce reddish interference
-  min_component_area_px = 1000L, # ignore tiny specks (min contour area in px)
-  k_open = c(3L,3L), # kernel size for morphological opening
-  k_close = c(7L,7L), # kernel size for morphological closing
-  object_min_area_cm2 = 20.0, # minimum object area (cm²) to keep
-  rel_min_frac_of_largest = 0.35, # relative cutoff (keep >=35\% of largest object)
-  max_keep = 3L # max number of objects to retain per image
-)
-print(res) # display resulting summary table in R
-
-# Simple default code for green leaf (or fruit)
-green= greencapture(
-  input_folder = r"(C:/Users/agron/Desktop/Coding)",
-  output_folder= r"(C:/Users/agron/Desktop/Coding/output)",
-  image_real_cm= c(75, 75),
-  show_windows= FALSE
-)
-print(green)
-
-# Code advanced: Wheat grain detection (brown grain on white background)
-grains= greencapture(
-  input_folder = r"(C:/Users/agron/Desktop/Coding)",
-  output_folder= r"(C:/Users/agron/Desktop/Coding/output)",
-  image_real_cm= c(30, 30),
-  show_windows= FALSE,
-  lower_hsv= c(10L, 100L, 25L),
-  upper_hsv= c(30L, 255L, 210L),
-  lab_a_max= 255L,
-  min_component_area_px= 120L,
-  k_open= c(3L, 3L),
-  k_close= c(5L, 5L),
-  object_min_area_cm2= 0.03,
-  rel_min_frac_of_largest= 0.15,
-  max_keep= 10000L
-)
-print(grains)
-}
-
-* Github: https://github.com/agronomy4future/greencapture
-
 }
